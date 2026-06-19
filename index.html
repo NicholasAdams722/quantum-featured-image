@@ -108,6 +108,10 @@
         <label for="showTitle">Show title line</label>
         <span class="switch"><input type="checkbox" id="showTitle" checked><span class="slider"></span></span>
       </div>
+      <div style="margin-top:14px">
+        <div class="washlabel"><span>Title size</span><span id="titleSizeVal">100%</span></div>
+        <input type="range" id="titleSize" min="60" max="140" value="100">
+      </div>
     </div>
 
     <div class="field">
@@ -164,7 +168,7 @@ const LOGO_RATIO = 700/154; // width/height of the white wordmark
 
 const state = {
   eyebrow:"QUANTUM UPDATE", date:"June 2026", title:"The Ethereum Market Stack",
-  showType:false, showTitle:true, bg:"smooth", theme:"blue", bgWash:0.70, w:1920, h:1080
+  showType:false, showTitle:true, bg:"smooth", theme:"blue", bgWash:0.70, w:1920, h:1080, titleScale:1.0
 };
 
 const THEMES = {
@@ -272,7 +276,7 @@ function render(){
 
   if(hasTitle){
     // ---- TITLE IS THE HERO ----
-    let tpx = H*0.104;
+    let tpx = H*0.104*state.titleScale;
     ctx.font=`400 ${tpx}px Inter, 'Helvetica Neue', Arial, sans-serif`;
     let lines = wrap(state.title.trim(), maxW);
     while(lines.length>3 && tpx>22){
@@ -378,6 +382,10 @@ document.getElementById('eyebrow').addEventListener('input', e=>{ state.eyebrow=
 document.getElementById('date').addEventListener('input', e=>{ state.date=e.target.value; render(); });
 document.getElementById('title').addEventListener('input', e=>{ state.title=e.target.value; render(); });
 document.getElementById('showTitle').addEventListener('change', e=>{ state.showTitle=e.target.checked; render(); });
+
+const titleSizeInput=document.getElementById('titleSize');
+const titleSizeVal=document.getElementById('titleSizeVal');
+titleSizeInput.addEventListener('input', e=>{ state.titleScale=(+e.target.value)/100; titleSizeVal.textContent=e.target.value+'%'; render(); });
 
 const bgInput=document.getElementById('bgImgInput');
 const bgRemove=document.getElementById('bgImgRemove');
