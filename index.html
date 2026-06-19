@@ -99,6 +99,10 @@
     <div class="field">
       <label>Date</label>
       <input type="text" id="date" value="June 2026">
+      <div class="row">
+        <label for="showDate">Show date</label>
+        <span class="switch"><input type="checkbox" id="showDate" checked><span class="slider"></span></span>
+      </div>
     </div>
 
     <div class="field">
@@ -168,7 +172,7 @@ const LOGO_RATIO = 700/154; // width/height of the white wordmark
 
 const state = {
   eyebrow:"QUANTUM UPDATE", date:"June 2026", title:"The Ethereum Market Stack",
-  showType:false, showTitle:true, bg:"smooth", theme:"blue", bgWash:0.70, w:1920, h:1080, titleScale:1.0
+  showType:false, showTitle:true, showDate:true, bg:"smooth", theme:"blue", bgWash:0.70, w:1920, h:1080, titleScale:1.0
 };
 
 const THEMES = {
@@ -271,7 +275,7 @@ function render(){
   const maxW = W*0.86;
   const hasTitle = state.showTitle && state.title.trim().length>0;
   const hasType  = state.showType;            // this post type carries a label
-  const hasDate  = state.date.trim().length>0;
+  const hasDate  = state.showDate && state.date.trim().length>0;
   const logoY = H*0.85;
 
   if(hasTitle){
@@ -350,7 +354,7 @@ function render(){
 function slug(s){ return (s||'').toLowerCase().replace(/['’]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); }
 function filename(){
   const lead = state.showType ? state.eyebrow : state.title;
-  const base = [slug(lead), slug(state.date)].filter(Boolean).join('-');
+  const base = [slug(lead), state.showDate ? slug(state.date) : ''].filter(Boolean).join('-');
   return (base||'quantum-featured-image')+'.png';
 }
 
@@ -382,6 +386,7 @@ document.getElementById('eyebrow').addEventListener('input', e=>{ state.eyebrow=
 document.getElementById('date').addEventListener('input', e=>{ state.date=e.target.value; render(); });
 document.getElementById('title').addEventListener('input', e=>{ state.title=e.target.value; render(); });
 document.getElementById('showTitle').addEventListener('change', e=>{ state.showTitle=e.target.checked; render(); });
+document.getElementById('showDate').addEventListener('change', e=>{ state.showDate=e.target.checked; render(); });
 
 const titleSizeInput=document.getElementById('titleSize');
 const titleSizeVal=document.getElementById('titleSizeVal');
