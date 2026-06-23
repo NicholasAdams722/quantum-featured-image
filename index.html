@@ -119,6 +119,19 @@
     </div>
 
     <div class="field">
+      <label>Companion line</label>
+      <textarea id="companion"></textarea>
+      <div class="row">
+        <label for="showCompanion">Show companion line</label>
+        <label class="switch"><input type="checkbox" id="showCompanion"><span class="slider"></span></label>
+      </div>
+      <div style="margin-top:14px">
+        <div class="washlabel"><span>Companion size</span><span id="companionSizeVal">100%</span></div>
+        <input type="range" id="companionSize" min="60" max="140" value="100">
+      </div>
+    </div>
+
+    <div class="field">
       <label>Theme</label>
       <div class="seg" id="theme">
         <button data-theme="blue" class="on">Blue</button>
@@ -172,8 +185,8 @@ const LOGO_RATIO = 700/154; // width/height of the white wordmark
 
 const todayMonthYear = new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'});
 const state = {
-  eyebrow:"QUANTUM UPDATE", date:todayMonthYear, title:"Title",
-  showType:false, showTitle:true, showDate:true, bg:"smooth", theme:"blue", bgWash:0.70, w:1920, h:1080, titleScale:1.0
+  eyebrow:"QUANTUM UPDATE", date:todayMonthYear, title:"Title", companion:"",
+  showType:false, showTitle:true, showDate:true, showCompanion:false, bg:"smooth", theme:"blue", bgWash:0.70, w:1920, h:1080, titleScale:1.0, companionScale:1.0
 };
 
 const THEMES = {
@@ -290,9 +303,23 @@ function render(){
     }
     const lh = tpx*1.16;
     const titleH = lines.length*lh;
+
+    const hasCompanion = state.showCompanion && state.companion.trim().length>0;
+    let cLines=[], cPx=0, cLh=0, cGap=0, cBlockH=0;
+    if(hasCompanion){
+      cPx = tpx*0.5*state.companionScale;
+      ctx.font=`300 ${cPx}px Inter, 'Helvetica Neue', Arial, sans-serif`;
+      cLines = wrap(state.companion.trim(), maxW);
+      if(cLines.length>2) cLines = cLines.slice(0,2);
+      cLh = cPx*1.25;
+      cGap = tpx*0.45;
+      cBlockH = cGap + cLines.length*cLh;
+    }
+
+    const blockH = titleH + cBlockH;
     const titleCenter = H*0.45;
-    const titleTop = titleCenter - titleH/2;
-    const titleBottom = titleCenter + titleH/2;
+    const titleTop = titleCenter - blockH/2;
+    const titleBottom = titleTop + titleH;
 
     // EYEBROW — the post type, small and tracked, above the hero
     if(hasType && state.eyebrow.trim()){
@@ -311,12 +338,22 @@ function render(){
     let y = titleTop + lh/2;
     lines.forEach(ln=>{ ctx.fillText(ln, W/2, y); y+=lh; });
 
+    // COMPANION LINE — quiet support below the title
+    let companionBottom = titleBottom;
+    if(hasCompanion){
+      ctx.font=`300 ${cPx}px Inter, 'Helvetica Neue', Arial, sans-serif`;
+      ctx.fillStyle='rgba(255,255,255,0.78)';
+      let cy = titleBottom + cGap + cLh/2;
+      cLines.forEach(ln=>{ ctx.fillText(ln, W/2, cy); cy+=cLh; });
+      companionBottom = titleBottom + cGap + cLines.length*cLh;
+    }
+
     // DATE — quiet caption below the hero
     if(hasDate){
       const dPx = roundedFit(state.date, 300, H*0.048, maxW);
       ctx.font=`300 ${dPx}px Inter, 'Helvetica Neue', Arial, sans-serif`;
       ctx.fillStyle='rgba(255,255,255,0.78)';
-      ctx.fillText(state.date, W/2, titleBottom + H*0.055);
+      ctx.fillText(state.date, W/2, companionBottom + H*0.055);
     }
 
   } else if(hasType){
@@ -388,6 +425,12 @@ document.getElementById('date').addEventListener('input', e=>{ state.date=e.targ
 document.getElementById('title').addEventListener('input', e=>{ state.title=e.target.value; render(); });
 document.getElementById('showTitle').addEventListener('change', e=>{ state.showTitle=e.target.checked; render(); });
 document.getElementById('showDate').addEventListener('change', e=>{ state.showDate=e.target.checked; render(); });
+document.getElementById('companion').addEventListener('input', e=>{ state.companion=e.target.value; render(); });
+document.getElementById('showCompanion').addEventListener('change', e=>{ state.showCompanion=e.target.checked; render(); });
+
+const companionSizeInput=document.getElementById('companionSize');
+const companionSizeVal=document.getElementById('companionSizeVal');
+companionSizeInput.addEventListener('input', e=>{ state.companionScale=(+e.target.value)/100; companionSizeVal.textContent=e.target.value+'%'; render(); });
 
 const titleSizeInput=document.getElementById('titleSize');
 const titleSizeVal=document.getElementById('titleSizeVal');
