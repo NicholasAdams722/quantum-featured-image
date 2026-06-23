@@ -307,9 +307,15 @@ function render(){
     const hasCompanion = state.showCompanion && state.companion.trim().length>0;
     let cLines=[], cPx=0, cLh=0, cGap=0, cBlockH=0;
     if(hasCompanion){
+      let titleWidth = 0;
+      for(const ln of lines){
+        const w = ctx.measureText(ln).width;
+        if(w > titleWidth) titleWidth = w;
+      }
+      const cMaxW = Math.min(maxW, Math.max(titleWidth, W*0.5));
       cPx = tpx*0.5*state.companionScale;
       ctx.font=`300 ${cPx}px Inter, 'Helvetica Neue', Arial, sans-serif`;
-      cLines = wrap(state.companion.trim(), maxW);
+      cLines = wrap(state.companion.trim(), cMaxW);
       if(cLines.length>2) cLines = cLines.slice(0,2);
       cLh = cPx*1.25;
       cGap = tpx*0.45;
