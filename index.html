@@ -292,6 +292,8 @@ function render(){
   const hasDate  = state.showDate && state.date.trim().length>0;
   const logoY = H*0.85;
 
+  const targetCenter = H*0.45;
+
   if(hasTitle){
     // ---- TITLE IS THE HERO ----
     let tpx = H*0.104*state.titleScale;
@@ -304,9 +306,20 @@ function render(){
     const lh = tpx*1.16;
     const titleH = lines.length*lh;
 
+    // Eyebrow sizing
+    const hasEyebrow = hasType && state.eyebrow.trim().length>0;
+    let eb='', ebPx=0;
+    const ebGap = H*0.052;  // eyebrow draw_y → title top edge
+    if(hasEyebrow){
+      eb = state.eyebrow.toUpperCase();
+      ebPx = roundedFit(eb, 700, H*0.040, maxW);
+    }
+
+    // Companion sizing
     const hasCompanion = state.showCompanion && state.companion.trim().length>0;
     let cLines=[], cPx=0, cLh=0, cGap=0, cBlockH=0;
     if(hasCompanion){
+      ctx.font=`400 ${tpx}px Inter, 'Helvetica Neue', Arial, sans-serif`;
       let titleWidth = 0;
       for(const ln of lines){
         const w = ctx.measureText(ln).width;
@@ -322,19 +335,26 @@ function render(){
       cBlockH = cGap + cLines.length*cLh;
     }
 
-    const blockH = titleH + cBlockH;
-    const titleCenter = H*0.45;
-    const titleTop = titleCenter - blockH/2;
+    // Date sizing
+    let dPx=0;
+    const dGap = H*0.055;  // (companion or title) bottom → date draw_y
+    if(hasDate) dPx = roundedFit(state.date, 300, H*0.048, maxW);
+
+    // Center the full block (eyebrow + title + companion + date) at targetCenter
+    const topPad = hasEyebrow ? (ebPx/2 + ebGap) : 0;
+    const bottomPad = hasDate ? (dGap + dPx/2) : 0;
+    const blockH = topPad + titleH + cBlockH + bottomPad;
+    const blockTop = targetCenter - blockH/2;
+    const titleTop = blockTop + topPad;
     const titleBottom = titleTop + titleH;
+    const companionBottom = titleBottom + cBlockH;
 
     // EYEBROW — the post type, small and tracked, above the hero
-    if(hasType && state.eyebrow.trim()){
-      const eb = state.eyebrow.toUpperCase();
+    if(hasEyebrow){
       if('letterSpacing' in ctx) ctx.letterSpacing = Math.round(H*0.0028)+'px';
-      const ebPx = roundedFit(eb, 700, H*0.040, maxW);
       ctx.font=`700 ${ebPx}px Inter, 'Helvetica Neue', Arial, sans-serif`;
       ctx.fillStyle='rgba(255,255,255,0.82)';
-      ctx.fillText(eb, W/2, titleTop - H*0.052);
+      ctx.fillText(eb, W/2, titleTop - ebGap);
       if('letterSpacing' in ctx) ctx.letterSpacing='0px';
     }
 
@@ -345,21 +365,18 @@ function render(){
     lines.forEach(ln=>{ ctx.fillText(ln, W/2, y); y+=lh; });
 
     // COMPANION LINE — quiet support below the title
-    let companionBottom = titleBottom;
     if(hasCompanion){
       ctx.font=`300 ${cPx}px Inter, 'Helvetica Neue', Arial, sans-serif`;
       ctx.fillStyle='rgba(255,255,255,0.78)';
       let cy = titleBottom + cGap + cLh/2;
       cLines.forEach(ln=>{ ctx.fillText(ln, W/2, cy); cy+=cLh; });
-      companionBottom = titleBottom + cGap + cLines.length*cLh;
     }
 
     // DATE — quiet caption below the hero
     if(hasDate){
-      const dPx = roundedFit(state.date, 300, H*0.048, maxW);
       ctx.font=`300 ${dPx}px Inter, 'Helvetica Neue', Arial, sans-serif`;
       ctx.fillStyle='rgba(255,255,255,0.78)';
-      ctx.fillText(state.date, W/2, companionBottom + H*0.055);
+      ctx.fillText(state.date, W/2, companionBottom + dGap);
     }
 
   } else if(hasType){
@@ -367,15 +384,22 @@ function render(){
     const eb=(state.eyebrow||'').toUpperCase();
     if('letterSpacing' in ctx) ctx.letterSpacing = Math.round(H*0.0016)+'px';
     const ebPx = roundedFit(eb, 800, H*0.104, maxW);
+    let dPx = 0;
+    const internalGap = H*0.023;  // visual gap between eyebrow bottom and date top
+    if(hasDate) dPx = roundedFit(state.date, 300, H*0.070, maxW);
+
+    const blockH = hasDate ? (ebPx + internalGap + dPx) : ebPx;
+    const blockTop = targetCenter - blockH/2;
+
     ctx.font=`800 ${ebPx}px Inter, 'Helvetica Neue', Arial, sans-serif`;
     ctx.fillStyle='#FFFFFF';
-    ctx.fillText(eb, W/2, H*0.44);
+    ctx.fillText(eb, W/2, blockTop + ebPx/2);
     if('letterSpacing' in ctx) ctx.letterSpacing='0px';
+
     if(hasDate){
-      const dPx = roundedFit(state.date, 300, H*0.070, maxW);
       ctx.font=`300 ${dPx}px Inter, 'Helvetica Neue', Arial, sans-serif`;
       ctx.fillStyle='rgba(255,255,255,0.92)';
-      ctx.fillText(state.date, W/2, H*0.55);
+      ctx.fillText(state.date, W/2, blockTop + ebPx + internalGap + dPx/2);
     }
 
   } else if(hasDate){
@@ -383,7 +407,7 @@ function render(){
     const dPx = roundedFit(state.date, 300, H*0.072, maxW);
     ctx.font=`300 ${dPx}px Inter, 'Helvetica Neue', Arial, sans-serif`;
     ctx.fillStyle='#FFFFFF';
-    ctx.fillText(state.date, W/2, H*0.46);
+    ctx.fillText(state.date, W/2, targetCenter);
   }
 
   // LOGO — white wordmark, centered
